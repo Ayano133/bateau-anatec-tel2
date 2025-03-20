@@ -1,34 +1,71 @@
-"use client"
-import React, { useState, useEffect } from 'react';
-import { initDatabase, saveLocation, fetchLocations } from '@/app/database';
-import { requestLocationPermission, getCurrentLocation, } from '@/app/location';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+// OtherPhoneApp.tsx
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { requestLocationPermission, getCurrentLocation } from './location'; // Vous devrez implémenter ceci
+import MapView, { Marker } from 'react-native-maps';
 
-const App = () => {
-  const [location, setLocation] = useState<{ coords: { latitude: number; longitude: number } } | null>(null);
+const OtherPhoneApp = () => {
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; title?: string }[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<{ latitude: number; longitude: number; title?: string } | null>(null);
 
   useEffect(() => {
-    // Initialiser la base de données
-    initDatabase();
-
-    // Récupérer la localisation et la sauvegarder
-    (async () => {
+    const sendLocation = async () => {
       try {
-        await requestLocationPermission();
-        const location = await getCurrentLocation();
-        setLocation(location);
-        await saveLocation(location.coords.latitude, location.coords.longitude);
+        console.log('Début de la fonction sendLocation'); // Log au début de la fonction
 
-        // Récupérer et afficher les localisations sauvegardées
-        const savedLocations = await fetchLocations();
-        console.log('Saved locations:', savedLocations);
+        const hasPermission = await requestLocationPermission();
+        console.log('Permission de localisation accordée ?', hasPermission); // Log après la demande de permission
+
+        // if (hasPermission !== true ) {
+        //   console.log('Permission de localisation non accordée, arrêt de l\'envoi de la position');
+        //   return;
+        // }
+
+        const currentLocation = await getCurrentLocation();
+        console.log('Position actuelle obtenue :', currentLocation); // Log après l'obtention de la position
+
+        if (!currentLocation || !currentLocation.coords) {
+          console.log('Position actuelle non valide, arrêt de l\'envoi de la position');
+          return;
+        }
+
+        setLocation(currentLocation.coords);
+
+        // Remplacez par l'adresse IP de votre serveur
+        const serverIp = 'http://10.119.255.18:3001/location'; // Exemple - REMPLACEZ CECI!
+        console.log('Adresse IP du serveur utilisée :', serverIp); // Log de l'adresse IP
+
+        console.log('Données à envoyer au serveur :', currentLocation.coords); // Log des données à envoyer
+
+        const response = await fetch(serverIp, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(currentLocation.coords),
+        });
+
+        console.log('Réponse du serveur reçue :', response); // Log de la réponse du serveur
+
+        if (response.ok) {
+          console.log('Localisation envoyée avec succès depuis l\'autre téléphone');
+        } else {
+          console.error('Erreur lors de l\'envoi de la localisation depuis l\'autre téléphone:', response.status, response.statusText);
+        }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Erreur dans l\'application de l\'autre téléphone:', error);
+      } finally {
+        console.log('Fin de la fonction sendLocation'); // Log à la fin de la fonction
       }
-    })();
+    };
+
+    sendLocation(); // Envoyer la position immédiatement
+
+    // Envoyer la position toutes les 10 secondes
+    const intervalId = setInterval(sendLocation, 3000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleMapPress = (event: any) => {
@@ -69,36 +106,35 @@ const App = () => {
           <MapView
             style={styles.map}
             initialRegion={{
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
+              latitude: location.latitude,
+              longitude: location.longitude,
               latitudeDelta: 0.001,
               longitudeDelta: 0.001,
             }}
-            onPress={handleMapPress} // Ajouter l'événement onPress
-            // mapType="satellite"
+            onPress={handleMapPress}
           >
-          
-          <Marker
-            coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}
-            title="Lucas"
-            description="HOME"
-            pinColor='blue'
-          />
-          {markers.map((marker, index) => (
             <Marker
-              key={index}
-              coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-              title={`Position ${index + 1}`}
-              onPress={() => handleMarkerPress(marker)}
+              coordinate={{ latitude: location.latitude, longitude: location.longitude }}
+              title="Lucas"
+              description={`Latitude: ${location.latitude}, Longitude: ${location.longitude}`}
+              pinColor='green'
             />
-          ))}
-        </MapView>
 
+            {markers.map((marker, index) => (
+              <Marker
+                key={index}
+                coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+                title={`Position ${index + 1}`}
+                onPress={() => handleMarkerPress(marker)}
+              />
+            ))}
+
+          </MapView>
         ) : (
           <Text>Loading...</Text>
         )}
 
-        {selectedMarker && (
+{selectedMarker && (
           <View style={styles.rectangle}>
             <View style={styles.rectangle_head}>
               <Text style={styles.head_titre}>{selectedMarker.title}</Text>
@@ -122,11 +158,10 @@ const App = () => {
               <TouchableOpacity style={styles.button_ALLER}>
                 <Text style={styles.button_ALLER_texte}>Aller à la position</Text>
               </TouchableOpacity>
-
             </View>
           </View>
         )}
-
+        
       </View>
     </View>
   );
@@ -153,7 +188,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
-  rectangle_head:{
+  rectangle_head: {
     padding: 20,
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -161,20 +196,20 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  head_titre:{
+  head_titre: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
   },
 
-  button_fermer:{
+  button_fermer: {
     backgroundColor: 'skyblue',
     padding: 10,
     borderRadius: 50,
     width: 90,
   },
 
-  button_fermer_texte:{
+  button_fermer_texte: {
     fontSize: 15,
     fontWeight: 'bold',
     color: 'white',
@@ -186,14 +221,14 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
 
-  text_titre_gps:{
+  text_titre_gps: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
     textDecorationLine: 'underline',
   },
 
-  coordonnées:{
+  coordonnées: {
     fontSize: 15,
     color: 'white',
     fontWeight: 'bold',
@@ -207,32 +242,272 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
-  button_sup:{
+  button_sup: {
     backgroundColor: 'skyblue',
     padding: 8,
     borderRadius: 50,
   },
 
-  button_sup_texte:{
+  button_sup_texte: {
     fontSize: 15,
     fontWeight: 'bold',
     color: 'white',
   },
 
-  button_ALLER:{
+  button_ALLER: {
     backgroundColor: 'white',
     padding: 8,
     borderRadius: 50,
   },
 
-  button_ALLER_texte:{
+  button_ALLER_texte: {
     fontSize: 15,
     fontWeight: 'bold',
     color: 'skyblue',
   },
 });
 
-export default App;
+export default OtherPhoneApp;
+
+
+
+
+
+// "use client"
+// import React, { useState, useEffect } from 'react';
+// import { initDatabase, saveLocation, fetchLocations } from '@/app/database';
+// import { requestLocationPermission, getCurrentLocation, } from '@/app/location';
+// import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+// import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+// const App = () => {
+//   const [location, setLocation] = useState<{ coords: { latitude: number; longitude: number } } | null>(null);
+//   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; title?: string }[]>([]);
+//   const [selectedMarker, setSelectedMarker] = useState<{ latitude: number; longitude: number; title?: string } | null>(null);
+
+//   useEffect(() => {
+//     // Initialiser la base de données
+//     initDatabase();
+
+//     // Récupérer la localisation et la sauvegarder
+//     (async () => {
+//       try {
+//         await requestLocationPermission();
+//         const location = await getCurrentLocation();
+//         setLocation(location);
+//         await saveLocation(location.coords.latitude, location.coords.longitude);
+
+//         // Récupérer et afficher les localisations sauvegardées
+//         const savedLocations = await fetchLocations();
+//         console.log('Saved locations:', savedLocations);
+//       } catch (error) {
+//         console.error('Error:', error);
+//       }
+//     })();
+//   }, []);
+
+//   const handleMapPress = (event: any) => {
+//     const { latitude, longitude } = event.nativeEvent.coordinate;
+//     setMarkers((prevMarkers) => {
+//       if (prevMarkers.length < 2) {
+//         return [...prevMarkers, { latitude, longitude, title: `Position ${prevMarkers.length + 1}` }];
+//       }
+//       return prevMarkers;
+//     });
+//   };
+
+//   const handleMarkerPress = (marker: { latitude: number; longitude: number; title?: string }) => {
+//     setSelectedMarker(marker);
+//   };
+
+//   const handleRemoveRectangle = () => {
+//     setSelectedMarker(null);
+//   };
+
+//   const handleRemoveMarker = () => {
+//     if (selectedMarker) {
+//       setMarkers((prevMarkers) =>
+//         prevMarkers.filter(
+//           (marker) =>
+//             marker.latitude !== selectedMarker.latitude ||
+//             marker.longitude !== selectedMarker.longitude
+//         )
+//       );
+//       setSelectedMarker(null);
+//     }
+//   };
+
+//   return (
+//     <View style={{ flex: 1 }}>
+//       <View style={styles.container}>
+//         {location ? (
+//           <MapView
+//             style={styles.map}
+//             initialRegion={{
+//               latitude: location.coords.latitude,
+//               longitude: location.coords.longitude,
+//               latitudeDelta: 0.001,
+//               longitudeDelta: 0.001,
+//             }}
+//             onPress={handleMapPress} // Ajouter l'événement onPress
+//             // mapType="satellite"
+//           >
+          
+//           <Marker
+//             coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}
+//             title="Lucas"
+//             description="HOME"
+//             pinColor='blue'
+//           />
+//           {markers.map((marker, index) => (
+//             <Marker
+//               key={index}
+//               coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+//               title={`Position ${index + 1}`}
+//               onPress={() => handleMarkerPress(marker)}
+//             />
+//           ))}
+//         </MapView>
+
+//         ) : (
+//           <Text>Loading...</Text>
+//         )}
+
+//         {selectedMarker && (
+//           <View style={styles.rectangle}>
+//             <View style={styles.rectangle_head}>
+//               <Text style={styles.head_titre}>{selectedMarker.title}</Text>
+//               <TouchableOpacity style={styles.button_fermer} onPress={handleRemoveRectangle}>
+//                 <Text style={styles.button_fermer_texte}>Fermer</Text>
+//               </TouchableOpacity>
+//             </View>
+
+//             <View style={styles.rectangle_gps}>
+//               <Text style={styles.text_titre_gps}>Latitude:</Text>
+//               <Text style={styles.coordonnées}>{selectedMarker.latitude}</Text>
+//               <Text style={styles.text_titre_gps}>Longitude:</Text>
+//               <Text style={styles.coordonnées}>{selectedMarker.longitude}</Text>
+//             </View>
+
+//             <View style={styles.rectangle_button}>
+//               <TouchableOpacity style={styles.button_sup} onPress={handleRemoveMarker}>
+//                 <Text style={styles.button_sup_texte}>Supprimer</Text>
+//               </TouchableOpacity>
+
+//               <TouchableOpacity style={styles.button_ALLER}>
+//                 <Text style={styles.button_ALLER_texte}>Aller à la position</Text>
+//               </TouchableOpacity>
+
+//             </View>
+//           </View>
+//         )}
+
+//       </View>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     ...StyleSheet.absoluteFillObject,
+//     flex: 1,
+//     justifyContent: 'flex-end',
+//     alignItems: 'center',
+//   },
+//   map: {
+//     ...StyleSheet.absoluteFillObject,
+//   },
+//   rectangle: {
+//     position: 'absolute',
+//     bottom: '32%',
+//     left: '10%',
+//     width: '80%',
+//     backgroundColor: 'rgba(143, 138, 138, 0.8)',
+//     borderColor: 'skyblue',
+//     borderWidth: 1,
+//     borderRadius: 10,
+//   },
+
+//   rectangle_head:{
+//     padding: 20,
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     flexDirection: 'row',
+//     width: '100%',
+//   },
+
+//   head_titre:{
+//     fontSize: 20,
+//     fontWeight: 'bold',
+//     color: 'white',
+//   },
+
+//   button_fermer:{
+//     backgroundColor: 'skyblue',
+//     padding: 10,
+//     borderRadius: 50,
+//     width: 90,
+//   },
+
+//   button_fermer_texte:{
+//     fontSize: 15,
+//     fontWeight: 'bold',
+//     color: 'white',
+//     textAlign: 'center',
+//   },
+
+//   rectangle_gps: {
+//     backgroundColor: 'transparent',
+//     paddingLeft: 20,
+//   },
+
+//   text_titre_gps:{
+//     fontSize: 20,
+//     fontWeight: 'bold',
+//     color: 'white',
+//     textDecorationLine: 'underline',
+//   },
+
+//   coordonnées:{
+//     fontSize: 15,
+//     color: 'white',
+//     fontWeight: 'bold',
+//     paddingBottom: 10,
+//   },
+
+//   rectangle_button: {
+//     alignItems: 'center',
+//     justifyContent: 'space-between',
+//     flexDirection: 'row',
+//     padding: 20,
+//   },
+
+//   button_sup:{
+//     backgroundColor: 'skyblue',
+//     padding: 8,
+//     borderRadius: 50,
+//   },
+
+//   button_sup_texte:{
+//     fontSize: 15,
+//     fontWeight: 'bold',
+//     color: 'white',
+//   },
+
+//   button_ALLER:{
+//     backgroundColor: 'white',
+//     padding: 8,
+//     borderRadius: 50,
+//   },
+
+//   button_ALLER_texte:{
+//     fontSize: 15,
+//     fontWeight: 'bold',
+//     color: 'skyblue',
+//   },
+// });
+
+// export default App;
 
 
 
