@@ -33,7 +33,7 @@ const OtherPhoneApp = () => {
         setLocation(currentLocation.coords);
 
         // Remplacez par l'adresse IP de votre serveur
-        const serverIp = 'http://10.119.255.18:3001/location'; // Exemple - REMPLACEZ CECI!
+        const serverIp = 'http://10.57.71.18:3001/location'; // Exemple - REMPLACEZ CECI!
         console.log('Adresse IP du serveur utilisée :', serverIp); // Log de l'adresse IP
 
         console.log('Données à envoyer au serveur :', currentLocation.coords); // Log des données à envoyer
