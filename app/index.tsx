@@ -1,6 +1,6 @@
 // OtherPhoneApp.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { requestLocationPermission, getCurrentLocation } from './location';
 import MapView, { Marker } from 'react-native-maps';
 
