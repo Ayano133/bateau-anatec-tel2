@@ -1,14 +1,16 @@
 // OtherPhoneApp.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { requestLocationPermission, getCurrentLocation } from './location';
 import MapView, { Marker } from 'react-native-maps';
 
 const OtherPhoneApp = () => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [markerLocation, setMarkerLocation] = useState<{ latitude: number; longitude: number } | null>(null); // Nouvel état pour la position du marker
+  const [PreviousLocation, setPreviousLocation] = useState<{ latitude: number; longitude: number; title?: string }[]>([]);
 
   useEffect(() => {
+
     const sendLocation = async () => {
       try {
         console.log('Début de la fonction sendLocation');
@@ -26,7 +28,7 @@ const OtherPhoneApp = () => {
 
         setLocation(currentLocation.coords);
 
-        const serverIp = 'http://10.57.71.18:3001/location'; // REMPLACEZ CECI!
+        const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
         console.log('Adresse IP du serveur utilisée :', serverIp);
 
         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -56,7 +58,7 @@ const OtherPhoneApp = () => {
 
     const fetchMarkerLocation = async () => {
       try {
-        const response = await fetch('http://10.57.71.18:3001/marker-location'); // Remplace avec l'adresse IP de ton serveur
+        const response = await fetch('http://10.165.209.18:3001/marker-location'); // Remplace avec l'adresse IP de ton serveur
         if (response.ok) {
           const data = await response.json();
           setMarkerLocation({ latitude: data.latitude, longitude: data.longitude });
@@ -103,6 +105,11 @@ const OtherPhoneApp = () => {
                 pinColor="red"
               />
             )}
+
+            {/* <TouchableOpacity style={styles.button_centrer}>
+              <Image source={require('@/images/Maps-Center-Direction-icon.png')} style={{ width: 20, height: 20 }} />
+            </TouchableOpacity> */}
+
           </MapView>
         ) : (
           <Text>Loading...</Text>
@@ -122,6 +129,16 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFillObject,
   },
+
+  button_centrer: {
+    position: 'absolute',
+    top: '3%',
+    right: '2%',
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 50,
+  },
+
 });
 
 export default OtherPhoneApp;
@@ -159,7 +176,7 @@ export default OtherPhoneApp;
 
 //         setLocation(currentLocation.coords);
 
-//         const serverIp = 'http://10.57.71.18:3001/location'; // REMPLACEZ CECI!
+//         const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
 //         console.log('Adresse IP du serveur utilisée :', serverIp);
 
 //         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -436,7 +453,7 @@ export default OtherPhoneApp;
 
 // //         setLocation(currentLocation.coords);
 
-// //         const serverIp = 'http://10.57.71.18:3001/location'; // REMPLACEZ CECI!
+// //         const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
 // //         console.log('Adresse IP du serveur utilisée :', serverIp);
 
 // //         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -739,7 +756,7 @@ export default OtherPhoneApp;
 // // //         setLocation(currentLocation.coords);
 
 // // //         // Remplacez par l'adresse IP de votre serveur
-// // //         const serverIp = 'http://10.57.71.18:3001/location'; // Exemple - REMPLACEZ CECI!
+// // //         const serverIp = 'http://10.165.209.18:3001/location'; // Exemple - REMPLACEZ CECI!
 // // //         console.log('Adresse IP du serveur utilisée :', serverIp); // Log de l'adresse IP
 
 // // //         console.log('Données à envoyer au serveur :', currentLocation.coords); // Log des données à envoyer
