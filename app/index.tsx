@@ -1,6 +1,6 @@
 // OtherPhoneApp.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
 import { requestLocationPermission, getCurrentLocation } from './location';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -28,7 +28,7 @@ const OtherPhoneApp = () => {
 
         setLocation(currentLocation.coords);
 
-        const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
+        const serverIp = 'http://172.20.10.2:3001/location'; // REMPLACEZ CECI!
         console.log('Adresse IP du serveur utilisée :', serverIp);
 
         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -58,7 +58,7 @@ const OtherPhoneApp = () => {
 
     const fetchMarkerLocation = async () => {
       try {
-        const response = await fetch('http://10.165.209.18:3001/marker-location'); // Remplace avec l'adresse IP de ton serveur
+        const response = await fetch('http://172.20.10.2:3001/marker-location'); // Remplace avec l'adresse IP de ton serveur
         if (response.ok) {
           const data = await response.json();
           setMarkerLocation({ latitude: data.latitude, longitude: data.longitude });
@@ -71,14 +71,37 @@ const OtherPhoneApp = () => {
       }
     };
 
+    const checkAppatMessage = async () => {
+      try {
+        const response = await fetch('http://172.20.10.2:3001/airdrop-appat');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.message === 'Lache les appats') {
+            Alert.alert('Alerte!', 'Lache les appats!');
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du message d\'appât:', error);
+      }
+    };
+
+    const appatIntervalId = setInterval(checkAppatMessage, 1000); // Check every 1 seconds
+
+    checkAppatMessage();
+
     sendLocation();
 
     const intervalId = setInterval(sendLocation, 3000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(appatIntervalId);
+    };
+  
   }, []);
 
   return (
+
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         {location ? (
@@ -176,7 +199,7 @@ export default OtherPhoneApp;
 
 //         setLocation(currentLocation.coords);
 
-//         const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
+//         const serverIp = 'http://172.20.10.2:3001/location'; // REMPLACEZ CECI!
 //         console.log('Adresse IP du serveur utilisée :', serverIp);
 
 //         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -453,7 +476,7 @@ export default OtherPhoneApp;
 
 // //         setLocation(currentLocation.coords);
 
-// //         const serverIp = 'http://10.165.209.18:3001/location'; // REMPLACEZ CECI!
+// //         const serverIp = 'http://172.20.10.2:3001/location'; // REMPLACEZ CECI!
 // //         console.log('Adresse IP du serveur utilisée :', serverIp);
 
 // //         console.log('Données à envoyer au serveur :', currentLocation.coords);
@@ -756,7 +779,7 @@ export default OtherPhoneApp;
 // // //         setLocation(currentLocation.coords);
 
 // // //         // Remplacez par l'adresse IP de votre serveur
-// // //         const serverIp = 'http://10.165.209.18:3001/location'; // Exemple - REMPLACEZ CECI!
+// // //         const serverIp = 'http://172.20.10.2:3001/location'; // Exemple - REMPLACEZ CECI!
 // // //         console.log('Adresse IP du serveur utilisée :', serverIp); // Log de l'adresse IP
 
 // // //         console.log('Données à envoyer au serveur :', currentLocation.coords); // Log des données à envoyer
