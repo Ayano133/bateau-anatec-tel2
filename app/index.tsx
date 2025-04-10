@@ -1,6 +1,5 @@
-// OtherPhoneApp.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, Alert, Linking } from 'react-native';
 import { requestLocationPermission, getCurrentLocation } from './location';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -8,41 +7,36 @@ const OtherPhoneApp = () => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [markerLocation, setMarkerLocation] = useState<{ latitude: number; longitude: number } | null>(null); // Nouvel état pour la position du marker
   const [PreviousLocation, setPreviousLocation] = useState<{ latitude: number; longitude: number; title?: string }[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const lastSentLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
+    let locationInterval: NodeJS.Timeout | null = null;
+    let appatInterval: NodeJS.Timeout | null = null;
 
     const sendLocation = async () => {
       try {
-        console.log('Début de la fonction sendLocation');
-
-        const hasPermission = await requestLocationPermission();
-        console.log('Permission de localisation accordée ?', hasPermission);
-
         const currentLocation = await getCurrentLocation();
-        console.log('Position actuelle obtenue :', currentLocation);
 
         if (!currentLocation || !currentLocation.coords) {
-          console.log('Position actuelle non valide, arrêt de l\'envoi de la position');
           return;
         }
 
         const { latitude, longitude } = currentLocation.coords;
 
-        // Vérifier si la nouvelle position est différente de la précédente
-        if (PreviousLocation.length > 0 &&
-          PreviousLocation[0].latitude === latitude &&
-          PreviousLocation[0].longitude === longitude) {
-          console.log('La position n\'a pas changé, pas d\'envoi.');
+        // Utiliser la référence pour la comparaison
+        if (lastSentLocationRef.current &&
+            lastSentLocationRef.current.latitude === latitude &&
+            lastSentLocationRef.current.longitude === longitude) {
+          console.log('Coordonnées identiques, pas d\'envoi');
           return;
         }
 
-        setLocation(currentLocation.coords);
-
-        const serverIp = 'http://172.20.10.2:3001/location'; // REMPLACEZ CECI!
-        console.log('Adresse IP du serveur utilisée :', serverIp);
-
-        console.log('Données à envoyer au serveur :', currentLocation.coords);
-
+        console.log('Coordonnées différentes détectées');
+        console.log('Dernière position:', lastSentLocationRef.current);
+        console.log('Nouvelle position:', { latitude, longitude });
+        
+        const serverIp = 'http://172.20.10.2:3001/location';
         const response = await fetch(serverIp, {
           method: 'POST',
           headers: {
@@ -51,19 +45,14 @@ const OtherPhoneApp = () => {
           body: JSON.stringify(currentLocation.coords),
         });
 
-        console.log('Réponse du serveur reçue :', response);
-
         if (response.ok) {
-          console.log('Localisation envoyée avec succès depuis l\'autre téléphone');
-          setPreviousLocation([{ latitude, longitude }]); // Mettre à jour la position précédente
-          await fetchMarkerLocation(); // Récupérer la position du marker immédiatement après avoir envoyé la position de l'autre téléphone
-        } else {
-          console.error('Erreur lors de l\'envoi de la localisation depuis l\'autre téléphone:', response.status, response.statusText);
+          setLocation(currentLocation.coords);
+          lastSentLocationRef.current = { latitude, longitude }; // Mettre à jour la référence
+          console.log('Position envoyée avec succès');
+          await fetchMarkerLocation();
         }
       } catch (error) {
-        console.error('Erreur dans l\'application de l\'autre téléphone:', error);
-      } finally {
-        console.log('Fin de la fonction sendLocation');
+        console.error('Erreur:', error);
       }
     };
 
@@ -73,7 +62,7 @@ const OtherPhoneApp = () => {
         if (response.ok) {
           const data = await response.json();
           setMarkerLocation({ latitude: data.latitude, longitude: data.longitude });
-          console.log('Localisation du marker reçue:', data);
+          // console.log('Localisation du marker reçue:', data);
         } else {
           console.log('Localisation du marker introuvable ou erreur lors de la récupération.');
         }
@@ -96,20 +85,61 @@ const OtherPhoneApp = () => {
       }
     };
 
-    const appatIntervalId = setInterval(checkAppatMessage, 1000); // Check every 1 seconds
+    const initializeLocation = async () => {
+      try {
+        console.log('Vérification des permissions...');
+        const hasPermission = await requestLocationPermission();
+        
+        if (hasPermission) {
+          console.log('Permission GPS accordée, démarrage de l\'envoi...');
+          setIsInitialized(true);
+          
+          // Test immédiat de la localisation
+          const testLocation = await getCurrentLocation();
+          if (testLocation) {
+            console.log('Test de localisation réussi:', testLocation.coords);
+            await sendLocation();
+            locationInterval = setInterval(sendLocation, 3000);
+            appatInterval = setInterval(checkAppatMessage, 1000);
+          } else {
+            console.error('Impossible d\'obtenir la position malgré les permissions');
+          }
+        } else {
+          console.log('Permission GPS refusée');
+          Alert.alert(
+            "Permission requise",
+            "L'application nécessite l'accès à votre position.",
+            [
+              {
+                text: "AUTORISER",
+                onPress: async () => {
+                  const newPermission = await requestLocationPermission();
+                  if (newPermission) {
+                    initializeLocation();
+                  }
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+      }
+    };
 
-    checkAppatMessage();
+    // Démarrer l'initialisation
+    if (!isInitialized) {
+      initializeLocation();
+    }
 
-    sendLocation();
-
-    const intervalId = setInterval(sendLocation, 3000);
-
+    // Nettoyage
     return () => {
-      clearInterval(intervalId);
-      clearInterval(appatIntervalId);
+      if (locationInterval) clearInterval(locationInterval);
+      if (appatInterval) clearInterval(appatInterval);
     };
   
-  }, []);
+  }, [isInitialized]);
 
   return (
 
