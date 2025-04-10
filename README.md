@@ -1,50 +1,72 @@
-# Welcome to your Expo app 👋
-
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
-
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+## Binome :
+```
+- PEREIRA DA SILVA RODRIGUES Mattéo
+- RENTE--PINTO Lucas
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+# <ins>Compte rendu:</ins>
+### Présentation du projet:
+```
+Le bateau Anatec est un bateau amorceur. Créé pour aider les pécheurs en lâchant des appâts à des endroits précis dans l’eau.
+Le bateau contient deux bacs a appâts de 400 ml chacun. Ses deux moteurs lui permettent de se déplacer aux coordonnées indiquées
+et son GPS permet à l’utilisateur de localiser le bateau et permet à celui-ci de se repérer par rapport aux zones choisies.
+L’application permet de choisir des zones afin que le bateau se déplace vers celles-ci. Elle permet aussi d'indiquer au bateau
+quand lacher les appâts.
+```
+### L'application :
+```
+En ouvrant l’application, l’utilisateur se trouve face à une carte, sur la carte se trouve deux markers ; un pour l’appareil
+de l’utilisateur et un autre pour le bateau. Chacun fonctionne en temps réel. En haut à gauche, se trouve trois boutons, le
+premier sert à recentrer la carte sur la position de l’utilisateur, le second bouton permet de largage des appâts et le dernier
+bouton supprime toutes les positions choisies. Les positions, elles, sont limitées à deux. Elles sont placées en cliquant sur la
+carte et peuvent êtres sélectionnées afin de les supprimer individuellement ou d’indiquer au bateau d’aller à ces coordonnées. 
+```
+### Fonctionnement de l'application:
+```
+L’application est développée sur le logiciel Visual Studio Code en utilisant ReactNative avec Expo comme langage
+de programmation. Un serveur Node créé avec le langage JavaScript depuis un ordinateur qui relie le système et l’appareil
+de l’utilisateur.
 
-## Learn more
+L’application est découpée en deux parties : une partie sur l’appareil utilisateur qui reçoit les coordonnées
+et qui permet d’envoyer un ordre pour lâcher les appâts. Une seconde partie qui envoie ses coordonnées grâce à un GPS et qui
+reçoit l’ordre de lâcher les appâts.
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### Difficultés rencontrées:
++ Envoi et réception de données sur le serveur
++ Fonctionnement du bouton pour recentrer la carte sur l’utilisateur
++ Demande de permissions entre les systèmes (permission d’accéder aux données gps)
++ Récupération des données gps des zones sélectionnées.
++ envoie de <ins>nouvelles</ins> coordonnées uniquement. (si changement de position)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Tests réalisés:
+```
+Par manque de matériel (GPS), les tests ont été réalisés entre deux téléphones, un dans le rôle de l’appareil utilisateur et
+l’autre dans le rôle du bateau. Le but était de voir si les données étaient bien transférées de l’un à l’autre en passant
+par le serveur.
+```
 
-## Join the community
+|  Les différents tests sont:                                      | Résultats:                                 |
+| ---------------------------------------------------------------- | ------------------------------------------ |
+| • La connexion entre le système et l'appareil utilisateur.       | • fonctionnel                              |
+| • la distance maximale de connexion entre les deux appareils.    | • entre 30 et 50 mètres.                   |
+| • la précision des posisions du bateau.                          | • précis à environ 10 mètres.              |
+| • l'envoi d'une notification pour annoncer le largage d'appâts.  | • fonctionnel.                             |
+| • le fonctionnement de chaque bouton.                            | • fonctionnel.                             |
+| • les demandes de permission d'accéder aux coordonnées.          | • fonctionnel.                             |
 
-Join our community of developers creating universal apps.
+### Conclusion:
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+
+
+
+
+
+
+
+
+
+
+
