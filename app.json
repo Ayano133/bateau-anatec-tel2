@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "bateau-anatec-tel2",
-    "slug": "bateau-anatec-tel2",
+    "name": "app-bateau-anatec",
+    "slug": "app-bateau-anatec",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,14 +10,17 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.bateauanatectel2"
+      "bundleIdentifier": "com.anonymous.appbateauanatec",
+      "config": {
+        "googleMapsApiKey": "AIzaSyBEIDB48_Q-2Gc024zifLwQutr9hYjLI1g"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.bateauanatectel2"
+      "package": "com.anonymous.appbateauanatec"
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +38,23 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite"
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
+          },
+          "ios": {
+            "customBuildFlags": [
+              "-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"
+            ]
+          }
+        }
+      ],
+      "react-native-wifi-reborn"
     ],
     "experiments": {
       "typedRoutes": true
