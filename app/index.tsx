@@ -1,3 +1,4 @@
+import { Stack, useNavigation } from 'expo-router';
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Image, Alert, Linking } from 'react-native';
 import { requestLocationPermission, getCurrentLocation } from './location';
@@ -9,6 +10,7 @@ const OtherPhoneApp = () => {
   const [PreviousLocation, setPreviousLocation] = useState<{ latitude: number; longitude: number; title?: string }[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const lastSentLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     let locationInterval: NodeJS.Timeout | null = null;
@@ -140,6 +142,44 @@ const OtherPhoneApp = () => {
     };
   
   }, [isInitialized]);
+
+  navigation.setOptions({ 
+  headerShown: true,
+  headerStyle: { 
+    backgroundColor: 'rgba(192, 248, 250, 1)',
+  },
+  headerTitle: () => (
+    <View style={{ height: 95, width: 390, backgroundColor: 'rgba(192, 248, 250, 1)', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+      <View style={{ flexDirection: 'column', marginBottom: 20}}>
+        <Text style={{
+          color: 'black',
+          fontWeight: 'bold',
+          fontSize: 25,
+          marginTop: 26,
+          paddingLeft: 10,
+        }}>
+          Bateau-Anatec
+        </Text>
+
+        <Text style={{
+          color: 'black',
+          fontWeight: 'bold',
+          fontSize: 15,
+          marginTop: 5,
+          paddingLeft: 11,
+          }}>
+          Utilisateur : Mattéo
+        </Text>
+      </View>
+
+      <View style={{ marginRight: 15, marginTop: 20, marginBottom: 20 }}>
+        <Image source={require('@/images/bateau.png')} style={{ width: 80, height: 80,}} />
+      </View>
+                
+
+    </View>
+  ),
+  });
 
   return (
 
