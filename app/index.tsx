@@ -13,8 +13,8 @@ const OtherPhoneApp = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    let locationInterval: NodeJS.Timeout | null = null;
-    let appatInterval: NodeJS.Timeout | null = null;
+    let locationInterval: number | undefined;
+    let appatInterval: number | undefined;
 
     const sendLocation = async () => {
       try {
