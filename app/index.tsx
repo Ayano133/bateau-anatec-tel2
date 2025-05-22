@@ -168,7 +168,7 @@ const OtherPhoneApp = () => {
           marginTop: 5,
           paddingLeft: 11,
           }}>
-          Utilisateur : Mattéo
+          Utilisateur : Lucas
         </Text>
       </View>
 
